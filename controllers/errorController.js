@@ -1,5 +1,4 @@
 const AppError = require("../Utils/appError");
-
 const handleCastErrorDB = err => {
   const msg = `Invalid ${err.path}: ${err.value}`;
   return new AppError(msg, 400);
@@ -14,7 +13,7 @@ const handleValidationErrorDB = err => {
   const errors = Object.values(err.errors).map(err => err.message);
   let msg = `Invalid input data: `;
   errors.forEach(s => {
-    msg += `${s} `;
+    msg += `${s}`;
   });
   return new AppError(msg, 400);
 };
@@ -59,28 +58,8 @@ module.exports = (err, req, res, next) => {
     if (err.name === 'CastError') error = handleCastErrorDB(err);
     else if (err.code === 11000) error = handleDuplicateFieldsDB(err);
     else if (err.name === 'ValidationError') error = handleValidationErrorDB(err);
-
-    /*     switch (error.name) {
-          case 'CastError': {
-            // Type in invalid tour id
-            break;
-          }
-          case 'MongoError': {
-            // Duplicate key error
-            error = handleDuplicateFieldsDB();
-            break;
-          }
-          case 'ValidationError': {
-            error = handleValidationError();
-            break;
-          }
-    
-    
-          default:
-            break;
-        }
-     */
-
+    else if (err.name === 'TokenExpiredError') error = new AppError('Token expired! Please login again.', 401);
+    else if (err.name === 'JsonWebTokenError') error = new AppError('Invalid token! Please login again.', 401);
     sendErrorProd(error, res);
   }
 };
