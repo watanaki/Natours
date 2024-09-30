@@ -8,22 +8,23 @@ router
   .post('/signup', authController.signup)
   .post('/login', authController.login)
   .post('/forgotPassword', authController.forgotPassword)
-  .patch('/resetpassword/:token', authController.resetPassword)
-  .patch('/updatePassword', authController.validate, authController.updatePassword)
-  .patch('/updateMe', authController.validate, userController.updateMe)
-  .delete('/deleteMe', authController.validate, userController.deleteMe);
+  .patch('/resetpassword/:token', authController.resetPassword);
 
-
-router
-  .route('/')
-  .get(userController.getAllUsers)
-  .post();
+// All the routes below now need to be logged in
+router.use(authController.validate);
 
 router
-  .route('/:id')
-  .get()
-  .post()
-  .delete();
+  .patch('/updatePassword', authController.updatePassword)
+  .patch('/updateMe', userController.updateMe)
+  .delete('/deleteMe', userController.deleteMe)
+  .get('/me', userController.getMe, userController.getUser);
 
+// All the routes below should be used by admin
+router.use(authController.restrictTo('admin'));
+
+router
+  .patch('/updateUser', userController.updateUser)
+  .get('/', userController.getAllUsers)
+  .delete('/:id', userController.deleteUser);
 
 module.exports = router;

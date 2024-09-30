@@ -59,14 +59,6 @@ const signup = catchAsync(async (req, res) => {
 
   try {
     sendToken(newUser, 201, res);
-    // const token = signToken({ id: newUser._id });
-
-    // res.status(201).json({
-    //   status: 'success',
-    //   token,
-    //   data: { user: newUser },
-    // });
-
   } catch (err) {
     await User.findByIdAndDelete(newUser._id);
     throw err;
@@ -126,13 +118,12 @@ const validate = catchAsync(async (req, res, next) => {
 
   req.user = user;
   next();
-
 });
 
 const restrictTo = (...roles) => {
   return (req, res, next) => {
     if (!roles.includes(req.user.role))
-      throw new AppError("Permission denied");
+      throw new AppError("Permission denied", 403);
 
     next();
   };
@@ -196,13 +187,6 @@ const resetPassword = catchAsync(async (req, res, next) => {
   await user.save();
 
   sendToken(user, 200, res, {});
-
-  // const token = signToken({ id: user.id });
-
-  // res.status(200).json({
-  //   status: 'success',
-  //   token
-  // });
 
 });
 

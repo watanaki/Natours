@@ -1,7 +1,7 @@
 const User = require('../Models/userModel');
-const APIFeature = require('../Utils/apiFeatures');
 const AppError = require('../Utils/appError');
 const catchAsync = require('../Utils/catchAsync');
+const factory = require('./handlerFactory');
 
 const filterObj = (obj, ...allowedfields) => {
   const newObj = {};
@@ -11,22 +11,10 @@ const filterObj = (obj, ...allowedfields) => {
   return newObj;
 };
 
-const getAllUsers = catchAsync(async (req, res) => {
-  const features = new APIFeature(User.find(), req.query);
-  features
-    .filter()
-    .sort()
-    .limitFields()
-    .paginate();
-
-  const users = await features.query;
-
-  res.status(200).json({
-    status: "success",
-    results: users.length,
-    data: users
-  });
-});
+const getAllUsers = factory.getAll(User);
+const updateUser = factory.updateOne(User);
+const deleteUser = factory.deleteOne(User);
+const getUser = factory.getOne(User);
 
 const updateMe = catchAsync(async (req, res) => {
   if (req.body.password || req.body.passwordConfirm)
@@ -51,17 +39,23 @@ const updateMe = catchAsync(async (req, res) => {
 const deleteMe = catchAsync(async (req, res) => {
   await User.findByIdAndUpdate(req.user.id, { active: false });
 
-  console.log("deleteing...");
-
-
   res.status(204).json({
     status: "success",
     data: null
   });
 });
 
+const getMe = (req, res, next) => {
+  req.params.id = req.user._id;
+  next();
+};
+
 module.exports = {
   getAllUsers,
   updateMe,
   deleteMe,
+  updateUser,
+  deleteUser,
+  getMe,
+  getUser,
 };

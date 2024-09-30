@@ -1,4 +1,5 @@
 const express = require('express');
+const path = require('path');
 const rateLimit = require("express-rate-limit");
 const helmet = require('helmet');
 const hpp = require('hpp');
@@ -6,12 +7,18 @@ const mongoSanitize = require('express-mongo-sanitize');
 const xssClean = require('xss-clean');
 const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
-const rootRouter = require('./routes/rootRouters');
+// const rootRouter = require('./routes/rootRouters');
+const viewRouter = require('./routes/viewRoutes');
+const reviewRouter = require('./routes/reviewRouter');
 const globalErrorHandler = require('./controllers/errorController');
 const appError = require('./Utils/appError');
 
 const app = express();
 
+app.set('view engine', 'pug');
+app.set('views', path.join(__dirname, 'views'));
+
+app.use(express.static(path.join(__dirname, 'public')));
 // Set security HTTP headers
 app.use(helmet());
 
@@ -47,11 +54,15 @@ const limiter = rateLimit({
   message: '<h1 style="text-align: center;">Too many request for this IP, try again in an hour.</h1>'
 });
 
+
 // Limit request from same IP
 app.use('/api', limiter);
+
+app.use('/', viewRouter);
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
-app.use('/', rootRouter);
+app.use('/api/v1/reviews', reviewRouter);
+
 
 app.all('*', (req, res, next) => {
   next(new appError(`Can't find ${req.originalUrl} on this server.`, 404));
